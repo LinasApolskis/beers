@@ -10,30 +10,20 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class RouteController extends Controller
 {
-    /**
-     * @Route("/", name="index")
-     */
-    public function index()
-    {
-        return $this->render('route/index.html.twig', [
-            'controller_name' => 'RouteController',
-        ]);
-    }
-
 
     /**
-     * @Route("/route", name="route")
+     * @Route("/", name="route")
      */
     public function route()
     {
+
+        //Still a lot of ways to optimize, but it works at some level, brings beers acording to eficiency per kilometer
         $bakuze_lat = 51.355468; //first cord
         $bakuze_lon = 11.100790; //second cord
         $kilometrai = 200000;
 
 
         $entityManager = $this->getDoctrine()->getManager();
-        //$beers = $entityManager->getRepository(Beers::class)->findAll();
-        //$breweries = $entityManager->getRepository(Breweries::class)->findAll();
         $geocodes = $entityManager->getRepository(Geocodes::class)->findAll();
 
 
@@ -80,9 +70,7 @@ class RouteController extends Controller
         {
 
             //Add found brewery and count lasting distance
-            //$beerarray[] = $cords[$nextid];
             $kilometrai -= $cords[$nextid]['km_to_pos'];
-            //$beerarray[] = $kilometrai;
 
             //Update distance to current brewery
             foreach($cords as $cord) {
@@ -113,16 +101,20 @@ class RouteController extends Controller
             $beerarray[] = $cords[$nextid];
         }
 
-
-
-
+        $beers = array();
+        $breweries = array();
+        foreach($beerarray as $value) {
+            $beers[] = $entityManager->getRepository(Beers::class)->findBy(['brewery_id' => $value['brewery_id']]);
+            $breweries[] = $entityManager->getRepository(Breweries::class)->find($value['brewery_id']);
+        }
 
 
 
 
         return $this->render('route/route.html.twig', [
-            'controller_name' => 'RouteController',
             'data' => $beerarray,
+            'beers' => $beers,
+            'breweries' => $breweries,
             'bakuze_lat' => $bakuze_lat,
             'bakuze_lon' => $bakuze_lon,
         ]);
